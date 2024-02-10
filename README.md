@@ -51,16 +51,5 @@ User guide:
     $clients                                displays a list of connected clients (The number in bracket's is the corresponding ID)
 
 
-[2] To convert the python file in an exe file use Pyinstaller and include all the modules
-
-
-Future Updates:
-
-
-[1] exe builder for the stub
-
-[2] command to change the folder target when sending a file
-
-[3] make the keylogger command create a txt file with the logs
 
 ...
