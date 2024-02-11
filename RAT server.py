@@ -17,9 +17,9 @@ import pyaudio
 import json
 
 
-ip = "192.168.1.5"
+ip = "%SERVER_IP%"
 print(ip)
-port = 4785
+port = int("%SERVER_PORT%")
 
 initliaze = lambda obj , x_coord , y_coord: obj.place(x=x_coord , y=y_coord)
 
