@@ -1,4 +1,6 @@
-# Python-RAT (ALPHA V. 1.0)
+# Python-RAT (ALPHA V. 1.1)
+
+UPDATE LOG 1.0 --> 1.1: Added dedicated connection for file transfering
 
 Warning! This software is for educational purposes only.
 
