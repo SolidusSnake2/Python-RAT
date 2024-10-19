@@ -200,7 +200,7 @@ def sendfile(host , datafile , connection):
         chunknumber = 0
         for n in range(iters):
             host.recv(1024)
-            connection.sendall(chunks[chunknumber])
+            connection.sendall(chunks[chunknumber] + bytes(f"{chunknumber}" , encoding="utf-8"))
             chunknumber += 1
     except PermissionError:
         host.send(pickle.dumps(create_response_header("Error 2" , None)))
@@ -456,7 +456,7 @@ while True:
 
                 if header["prefix"] == "$soundboard":
                     header = pickle.loads(server.recv(1024))
-                    recieve_file(server , header)
+                    recieve_file(server , header , transfer)
                 
                 if header["prefix"] == "$test":
                     data = server.recv(10000)

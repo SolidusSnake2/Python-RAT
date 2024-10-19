@@ -15,8 +15,10 @@ import select
 import matplotlib.pyplot as plt
 import pyaudio
 import json
+from colorama import init
 
 
+init(convert=True)
 ip = "192.168.1.16"
 print(ip)
 port = int("8080")
@@ -58,7 +60,8 @@ def recieve_file(client , arg , autorun , transfer_conn):
         else:
             for n in range(pickle.loads(iters)):
                 client.sendall(b"ok")
-                pezzo = transfer_conn.recv(1000000)
+                pezzo = transfer_conn.recv(1000100)
+                print(pezzo[-20:])
                 file_data = file_data + pezzo
             os.chdir(target)
             nome = arg.split("\\")[-1]
@@ -226,7 +229,7 @@ def soundboard_brains(client , prefix , path):
     if button_s:
         button_s = False
         client.sendall(pickle.dumps(create_header(prefix , None , None , None)))
-        sendfile(path , "Sound" , client)
+        sendfile(path , "Sound" , client , current_array["transfer"])
         button_s = True
         
 
