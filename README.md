@@ -2,7 +2,7 @@
 
 UPDATE LOG 1.0 --> 1.1: Added dedicated channel for file transfering
 
-Warning! This software is for educational purposes only.
+Warning! This software is for educational purposes only. I AM NOT RESPOSNBILE FOR ANY FORM OF MALICIOUS USE OF THE PROGRAM.
 
 User guide:
 
